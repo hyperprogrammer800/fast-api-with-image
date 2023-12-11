@@ -1,6 +1,7 @@
 import psycopg2, os
 from pymongo import MongoClient
 from dotenv import load_dotenv
+import traceback
 
 load_dotenv()
 
@@ -60,10 +61,11 @@ def get_users(cur, table_name, user_id=None):
     user_str = f"WHERE id = {user_id}" if user_id else ""
     cur.execute(f""" SELECT * FROM {table_name} {user_str}
                 """)
-    return cur.fetchone()
+    return cur.fetchall()
 
 def insert_row(conn, cur, table_name, user_dict):
     try:
+        print(user_dict)
         cur.execute(f""" INSERT INTO {table_name} (fullname, email, password, phone) 
                         VALUES {tuple(user_dict.values())} RETURNING id""")
         data = cur.fetchone() 
@@ -72,5 +74,5 @@ def insert_row(conn, cur, table_name, user_dict):
         cur.close()
         conn.close()
         return data[0]
-    except:
-        return {"error" : "Insert user data error"}
+    except Exception as e:
+        return {"error" : e, 'trace' : traceback.format_exc()}
